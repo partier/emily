@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "."
+		}
+	],
+
+	"build_systems" :
+	[
+		{
+			"name" : "Emily",
+			"cmd" : ["$project_path/env/Scripts/python.exe", "-u", "emily.py"]
+		}
+	]
+}
