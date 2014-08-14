@@ -1,5 +1,6 @@
 # coding: latin-1
 
+import os
 from flask import Flask, request
 
 emily = Flask(__name__)
@@ -21,4 +22,7 @@ def shutdown():
     return "Server shutting down..."
 
 if __name__ == "__main__":
-    emily.run()
+    port = 80
+    if "PORT" in os.environ:
+        port = int(os.environ["PORT"])
+    emily.run(debug=True, port=port, host="0.0.0.0")
