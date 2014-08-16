@@ -5,6 +5,20 @@ from flask import Flask, request
 
 emily = Flask(__name__)
 
+if "HEROKU_API_KEY" not in os.environ:
+    raise RuntimeError("No API key specified in environment")
+heroku_api_key = os.environ["HEROKU_API_KEY"]
+
+
+@emily.route("/new_game")
+def new_game():
+    return None
+
+
+@emily.route("/close_game")
+def close_game():
+    return None
+
 
 @emily.route("/")
 def main():
