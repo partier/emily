@@ -6,7 +6,7 @@ from flask import Flask, request
 emily = Flask(__name__)
 
 if "HEROKU_API_KEY" not in os.environ:
-    raise RuntimeError("No API key specified in environment")
+    raise RuntimeError("No API key in environment")
 heroku_api_key = os.environ["HEROKU_API_KEY"]
 
 
