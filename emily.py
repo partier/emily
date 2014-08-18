@@ -1,14 +1,31 @@
 # coding: latin-1
 
 import os
+import heroku
+import psycopg2
 from flask import Flask, request
 
 emily = Flask(__name__)
 
-if "HEROKU_API_KEY" not in os.environ:
-    raise RuntimeError("No API key in environment")
-heroku_api_key = os.environ["HEROKU_API_KEY"]
 
+def load_environment(name):
+    if name not in os.environ:
+        raise RuntimeError("{n} not in environment".format(n=name))
+    return os.environ[name]
+
+heroku_api_key = load_environment("HEROKU_API_KEY")
+emily_url = load_environment("EMILY_URL")
+db_host = load_environment("DB_HOST")
+db_port = load_environment("DB_PORT")
+db_name = load_environment("DB_NAME")
+db_user = load_environment("DB_USER")
+db_password = load_environment("DB_PASSWORD")
+gatsby_app_name = load_environment("GATSBY_APP_NAME")
+
+db = psycopg2.connect(host=db_host, port=db_port, dbname=db_name, user=db_user,
+                      password=db_password)
+
+platform = heroku.from_key(heroku_api_key)
 
 @emily.route("/new_game")
 def new_game():
