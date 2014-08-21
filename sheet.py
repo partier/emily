@@ -1,6 +1,7 @@
 import requests
 import copy
 
+
 class Sheet(object):
     """Thin requests wrapper for RESTful interfaces"""
 
@@ -49,8 +50,9 @@ class Sheet(object):
 
     def _url(self, *args):
         """Converts nodes to URL string"""
-        nodes = [n._name for n in self._insert(*args)].reverse()
+        nodes = reversed([n._name for n in self._insert(*args)])
         return "/".join(nodes)
+
 
 def bind_method(method):
     def sink(self, *args, **kwargs):
