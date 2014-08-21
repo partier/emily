@@ -57,7 +57,4 @@ def main():
             "k you use.")
 
 if __name__ == "__main__":
-    port = 80
-    if "PORT" in os.environ:
-        port = int(os.environ["PORT"])
-    emily.run(debug=True, port=port, host="0.0.0.0")
+    emily.run(debug=True, port=os.environ["PORT"], host="0.0.0.0")
