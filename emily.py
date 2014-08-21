@@ -1,8 +1,9 @@
 # coding: latin-1
 
+import base64
 import os
-import heroku
 import psycopg2
+import sheet
 from flask import Flask, request
 
 emily = Flask(__name__)
@@ -22,10 +23,13 @@ db_user = load_environment("DB_USER")
 db_password = load_environment("DB_PASSWORD")
 gatsby_app_name = load_environment("GATSBY_APP_NAME")
 
+headers = {"Authorization": base64.b64encode(":" + heroku_api_key),
+           "Accept": "application/vnd.heroku+json; version=3",
+           "User-Agent": "Partier-Emily/0.0"}
+heroku = sheet.Sheet("https://api.heroku.com", headers=headers)
 db = psycopg2.connect(host=db_host, port=db_port, dbname=db_name, user=db_user,
                       password=db_password)
 
-platform = heroku.from_key(heroku_api_key)
 
 @emily.route("/new_game")
 def new_game():
