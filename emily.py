@@ -60,4 +60,4 @@ def main():
             "k you use.")
 
 if __name__ == "__main__":
-    emily.run(debug=True, port=os.environ["PORT"], host="0.0.0.0")
+    emily.run(debug=True, port=int(os.environ["PORT"]), host="0.0.0.0")
