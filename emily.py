@@ -42,7 +42,10 @@ gatsby_app = gatsby_app[0]
 
 @emily.route("/new_game")
 def new_game():
-    return None
+    dyno = {"command": "python -u gatsby.py whatever",
+            "type": "web"}
+    heroku.apps.dynos.POST(data=dyno)
+    return "Tried, boss"
 
 
 @emily.route("/close_game")
