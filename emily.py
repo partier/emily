@@ -32,20 +32,9 @@ heroku = sheet.Sheet("https://api.heroku.com", headers=headers)
 db = psycopg2.connect(host=db_host, port=db_port, dbname=db_name, user=db_user,
                       password=db_password)
 
-# Find Gatsby
-apps = heroku.apps.GET().json()
-gatsby_app = filter(lambda a: a["name"] == gatsby_app_name, apps)
-if len(gatsby_app) == 0:
-    raise RuntimeError("Cannot locate Gatsby app: {}".format(gatsby_app_name))
-gatsby_app = gatsby_app[0]
-
-
 @emily.route("/new_game")
 def new_game():
-    dyno = {"command": "python -u gatsby.py whatever",
-            "type": "web"}
-    heroku.apps.dynos.POST(data=dyno)
-    return "Tried, boss"
+    return None
 
 
 @emily.route("/close_game")
