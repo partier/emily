@@ -32,6 +32,16 @@ heroku = sheet.Sheet("https://api.heroku.com", headers=headers)
 db = psycopg2.connect(host=db_host, port=db_port, dbname=db_name, user=db_user,
                       password=db_password)
 
+@emily.route("/card")
+def card(id):
+    # Test card:
+    card = { "title": "Best card title EVER",
+             "body": "Some lorum ipsum nonsense",
+             "help": "Flavor text. Something witty",
+             "type": "Test card type"}
+    return json.dumps(card)
+
+
 @emily.route("/new_game")
 def new_game():
     return None
