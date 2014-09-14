@@ -33,7 +33,7 @@ db = psycopg2.connect(host=db_host, port=db_port, dbname=db_name, user=db_user,
                       password=db_password)
 
 @emily.route("/card")
-def card(id):
+def card():
     # Test card:
     card = { "title": "Best card title EVER",
              "body": "Some lorum ipsum nonsense",
