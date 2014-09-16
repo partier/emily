@@ -3,6 +3,7 @@
 import base64
 import os
 import psycopg2
+import urlparse
 import sheet
 import json
 from flask import Flask
@@ -18,20 +19,20 @@ def load_environment(name):
 # Load environment
 heroku_api_key = load_environment("HEROKU_API_KEY")
 emily_url = load_environment("EMILY_URL")
-db_host = load_environment("DB_HOST")
-db_port = load_environment("DB_PORT")
-db_name = load_environment("DB_NAME")
-db_user = load_environment("DB_USER")
-db_password = load_environment("DB_PASSWORD")
-gatsby_app_name = load_environment("GATSBY_APP_NAME")
+db_url = urlparse.urlparse(load_environment("DATABASE_URL"))
 
 # Configure connections
 headers = {"Authorization": base64.b64encode(":" + heroku_api_key),
            "Accept": "application/vnd.heroku+json; version=3",
            "User-Agent": "Partier-Emily/0.0"}
 heroku = sheet.Sheet("https://api.heroku.com", headers=headers)
-db = psycopg2.connect(host=db_host, port=db_port, dbname=db_name, user=db_user,
-                      password=db_password)
+db = psycopg2.connect(
+        database=db_url.path[1:],
+        user=db_url.username,
+        password=db_url.password,
+        host=db_url.hostname,
+        port=db_url.port)
+
 
 @emily.route("/card")
 def card():
