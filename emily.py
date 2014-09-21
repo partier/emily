@@ -1,47 +1,15 @@
 # coding: latin-1
 
-import base64
-import os
-import psycopg2
-import urlparse
-import sheet
+import db
 import json
+import os
 from flask import Flask
 
 emily = Flask(__name__)
 
-
-def load_environment(name):
-    if name not in os.environ:
-        raise RuntimeError("{n} not in environment".format(n=name))
-    return os.environ[name]
-
-# Load environment
-heroku_api_key = load_environment("HEROKU_API_KEY")
-emily_url = load_environment("EMILY_URL")
-db_url = urlparse.urlparse(load_environment("DATABASE_URL"))
-
-# Configure connections
-headers = {"Authorization": base64.b64encode(":" + heroku_api_key),
-           "Accept": "application/vnd.heroku+json; version=3",
-           "User-Agent": "Partier-Emily/0.0"}
-heroku = sheet.Sheet("https://api.heroku.com", headers=headers)
-db = psycopg2.connect(
-        database=db_url.path[1:],
-        user=db_url.username,
-        password=db_url.password,
-        host=db_url.hostname,
-        port=db_url.port)
-
-
 @emily.route("/card")
 def card():
-    # Test card:
-    card = { "title": "Best card title EVER",
-             "body": "Some lorum ipsum nonsense",
-             "help": "Flavor text. Something witty",
-             "type": "Test card type"}
-    return json.dumps(card)
+    return json.dumps(db.random_card())
 
 
 @emily.route("/new_game")
