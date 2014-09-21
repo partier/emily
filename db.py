@@ -22,8 +22,7 @@ db_con = psycopg2.connect(
 
 
 def random_card():
-    cur = db_con.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("SELECT * FROM cards ORDER BY RANDOM() LIMIT 1")
     val = cur.fetchone()
-    print val
-    return None
+    return val

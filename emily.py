@@ -9,7 +9,7 @@ emily = Flask(__name__)
 
 @emily.route("/card")
 def card():
-    return json.dumps(db.random_card())
+    return json.dumps(db.random_card(), separators=(",",":"))
 
 
 @emily.route("/new_game")
