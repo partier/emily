@@ -1,1 +1,1 @@
-web: python -u emily.py
+web: gunicorn emily:emily --log-file=- --workers $WEB_CONCURRENCY
