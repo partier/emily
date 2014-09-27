@@ -12,16 +12,6 @@ def card():
     return json.dumps(db.random_card(), separators=(",",":"))
 
 
-@emily.route("/new_game")
-def new_game():
-    return None
-
-
-@emily.route("/close_game")
-def close_game():
-    return None
-
-
 @emily.route("/")
 def main():
     return ("Manners are a sensitive awareness of the feelings of others. If y"
