@@ -12,6 +12,7 @@ def load_environment(name):
     return os.environ[name]
 
 
+psycopg2.extras.register_uuid()
 db_url = urlparse.urlparse(load_environment("DATABASE_URL"))
 db_con = psycopg2.connect(
         database=db_url.path[1:],
@@ -23,6 +24,11 @@ db_con = psycopg2.connect(
 
 def random_card():
     cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM cards ORDER BY RANDOM() LIMIT 1")
-    val = cur.fetchone()
-    return val
+    cur.execute("SELECT * FROM cards ORDER BY RANDOM() LIMIT 1;")
+    return cur.fetchone()
+
+
+def card_from_id(card_id):
+    cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT * FROM cards WHERE id=%s;", (card_id,))
+    return cur.fetchone()
