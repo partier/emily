@@ -54,3 +54,6 @@ docs/_build/
 
 # Sublime types
 *.sublime-workspace
+
+# Cloud9 stuff
+.c9/
