@@ -11,20 +11,20 @@ from uuidencoder import UUIDCapableEncoder as encoder
 
 emily = Flask(__name__)
 
-@emily.route("/card")
+@emily.route("/card", methods=["GET"])
 def card():
     card = db.random_card()
     return redirect(
         url_for("card_from_id", b57id=shortuuid.encode(card["id"])))
 
 
-@emily.route("/card/<b57id>")
+@emily.route("/card/<b57id>", methods=["GET"])
 def card_from_id(b57id):
     card = db.card_from_id(shortuuid.decode(b57id))
     return json.dumps(card, separators=(",", ":"), cls=encoder)
 
 
-@emily.route("/")
+@emily.route("/", methods=["GET"])
 def main():
     return ("Manners are a sensitive awareness of the feelings of others. If y"
             "ou have that awareness, you have good manners, no matter what for"
