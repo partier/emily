@@ -13,20 +13,15 @@ emily = Flask(__name__)
 
 @emily.route("/card")
 def card():
-    return json.dumps(db.random_card(), separators=(",", ":"), cls=encoder)
+    card = db.random_card()
+    return redirect(
+        url_for("card_from_id", b57id=shortuuid.encode(card["id"])))
 
 
 @emily.route("/card/<b57id>")
 def card_from_id(b57id):
     card = db.card_from_id(shortuuid.decode(b57id))
     return json.dumps(card, separators=(",", ":"), cls=encoder)
-
-
-@emily.route("/redirect")
-def redirect_test():
-    card = db.random_card()
-    return redirect(
-        url_for("card_from_id", b57id=shortuuid.encode(card["id"])))
 
 
 @emily.route("/")
