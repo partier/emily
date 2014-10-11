@@ -31,7 +31,7 @@ def gatsby():
         g_b57id = shortuuid.encode(g_uuid)
         table = "gatsby_users_" + g_b57id
         db.create_gatsby_table(table)
-        #db.register_gatsby_table(g_uuid, table)
+        db.register_gatsby_table(g_uuid, table)
         return ("WAT", 201, {"Location": url_for("gatsby_from_id", b57id=g_b57id)})
     except Exception as e:
         print e
