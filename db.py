@@ -43,8 +43,8 @@ def create_gatsby_table(table_name):
         db_con.commit()
 
 
-def register_gatsby_table(g_uuid, g_b57id):
+def register_gatsby_table(g_uuid, table_name):
     print "Try register name"
     cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("INSERT INTO gatsbys VALUES (%s, gatsby_users_%s);", 
-                (g_uuid, g_b57id,))
+    cur.execute("INSERT INTO gatsbys VALUES (%s, " + table_name + ");", 
+                (g_uuid, table_name,))
