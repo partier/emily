@@ -26,12 +26,16 @@ def card_from_id(b57id):
 
 @emily.route("/gatsby", methods=["GET"])
 def gatsby():
-    g_uuid = uuid.uuid4()
-    g_b57id = shortuuid.encode(g_uuid)
-    db.create_gatsby_table("gatsby_users_" + g_b57id)
-    db.register_gatsby_table(g_uuid, g_b57id)
-    return None, 201, {"Location": url_for("gatsby_from_id", b57id=g_b57id)}
-    
+    try:
+        g_uuid = uuid.uuid4()
+        g_b57id = shortuuid.encode(g_uuid)
+        table = "gatsby_users_" + g_b57id
+        db.create_gatsby_table(table)
+        #db.register_gatsby_table(g_uuid, table)
+        return ("WAT", 201, {"Location": url_for("gatsby_from_id", b57id=g_b57id)})
+    except Exception as e:
+        print e
+
 
 @emily.route("/gatsby/<b57id>", methods=["GET"])
 def gatsby_from_id(b57id):
