@@ -23,12 +23,28 @@ db_con = psycopg2.connect(
 
 
 def random_card():
-    cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM cards ORDER BY RANDOM() LIMIT 1;")
-    return cur.fetchone()
+    with db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM cards ORDER BY RANDOM() LIMIT 1;")
+        return cur.fetchone()
 
 
 def card_from_id(card_id):
+    with db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM cards WHERE id=%s;", (card_id,))
+        return cur.fetchone()
+
+
+def create_gatsby_table(table_name):    
+    create = "CREATE TABLE " + table_name + " (id uuid, pending_card uuid, las"\
+        "t_seen uuid, last_seen_time timestamptz, heartbeat timestamptz, CONST"\
+        "RAINT pkey PRIMARY KEY (id));"
+    with db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(create)
+        db_con.commit()
+
+
+def register_gatsby_table(g_uuid, g_b57id):
+    print "Try register name"
     cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM cards WHERE id=%s;", (card_id,))
-    return cur.fetchone()
+    cur.execute("INSERT INTO gatsbys VALUES (%s, gatsby_users_%s);", 
+                (g_uuid, g_b57id,))
