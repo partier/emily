@@ -24,7 +24,7 @@ def card_from_id(b57id):
     return json.dumps(card, separators=(",", ":"), cls=encoder)
 
 
-@emily.route("/gatsby", methods=["GET"])
+@emily.route("/gatsby", methods=["POST"])
 def gatsby():
     g_uuid = uuid.uuid4()
     g_b57id = shortuuid.encode(g_uuid)
