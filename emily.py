@@ -37,9 +37,12 @@ def gatsby():
         print e
 
 
-@emily.route("/gatsby/<b57id>", methods=["GET"])
+@emily.route("/gatsby/<b57id>", methods=["DELETE"])
 def gatsby_from_id(b57id):
-    return None
+    g_uuid = shortuuid.decode(b57id)
+    table = "gatsby_users_" + str(g_uuid)
+    db.drop_gatsby_table(table)
+    db.unregister_gatsby_table(g_uuid)
 
 
 @emily.route("/", methods=["GET"])
