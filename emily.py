@@ -24,11 +24,27 @@ def card_from_id(b57id):
     return json.dumps(card, separators=(",", ":"), cls=encoder)
 
 
+@emily.route("/gatsby", methods=["GET"])
+def gatsby():
+    g_uuid = uuid.uuid4()
+    g_b57id = shortuuid.encode(g_uuid)
+    table = "gatsby_users_" + str(g_uuid)
+    db.create_gatsby_table(table)
+    db.register_gatsby_table(g_uuid, table)
+    return ("WAT", 201, {"Location": url_for("gatsby_from_id", b57id=g_b57id)})
+
+
+@emily.route("/gatsby/<b57id>", methods=["GET"])
+def gatsby_from_id(b57id):
+    return None
+
+
 @emily.route("/", methods=["GET"])
 def main():
     return ("Manners are a sensitive awareness of the feelings of others. If y"
             "ou have that awareness, you have good manners, no matter what for"
             "k you use.")
+
 
 if __name__ == "__main__":
     emily.run(debug=True, port=int(os.environ["PORT"]), host="0.0.0.0")
