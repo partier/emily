@@ -14,9 +14,9 @@ def load_environment(name):
 SELECT_CARD_RND = "SELECT * FROM cards ORDER BY RANDOM() LIMIT 1;"
 SELECT_CARD_ID = "SELECT * FROM cards WHERE id=%s"
 REGISTER_GATSBY = "INSERT INTO gatsbys VALUES (%s, %s)"
-CREATE_GATSBY = "CREATE TABLE %s (id uuid, pending_card uuid, last_seen uuid, "\
-                "last_seen_time timestamptz, heartbeat timestamptz, CONSTRAINT"\
-                " %s_pKey PRIMARY KEY(id));"
+CREATE_GATSBY = "CREATE TABLE \"%s\" (id uuid, pending_card uuid, last_seen uu"\
+                "id, last_seen_time timestamptz, heartbeat timestamptz, CONSTR"\
+                "AINT \"%s_pKey\" PRIMARY KEY(id));"
 
 
 psycopg2.extras.register_uuid()
@@ -49,7 +49,6 @@ def create_gatsby_table(table_name):
 
 
 def register_gatsby_table(g_uuid, table_name):
-    print "Try register name"
     with db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor):
         cur = db_con.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(REGISTER_GATSBY, (g_uuid, table_name,))
