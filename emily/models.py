@@ -32,7 +32,7 @@ class User(object):
 
     def __init__(self, **kwargs):
         self._api = kwargs
-        self.uuid = kwargs.pop("id", uuid.uuid4())
+        self.uuid = kwargs.get("id", uuid.uuid4())
 
 
 class UserList(object):
@@ -80,8 +80,8 @@ class Gatsby(B57Mixin):
 
     def __init__(self, **kwargs):
         self._api = kwargs
-        self.uuid = kwargs.pop("id", uuid.uuid4())
-        self.table_name = kwargs.pop("table_name", self._new_table_name())
+        self.uuid = kwargs.get("id", uuid.uuid4())
+        self.table_name = kwargs.get("table_name", self._new_table_name())
         self.users = UserList(self)
 
 
