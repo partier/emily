@@ -32,14 +32,14 @@ class User(object):
 
     def __init__(self, **kwargs):
         self._api = kwargs
-        self.uuid = kwargs.get("id", uuid.uuid4())
+        self.uuid = kwargs.get("uuid", uuid.uuid4())
 
 
 class UserList(object):
 
     ADD = "INSERT INTO \"%s\" VALUES (%%s);"
-    REMOVE = "DELETE FROM \"%s\" WHERE id=%%s;"
-    SELECT = "SELECT * FROM \"%s\" WHERE id=%%s;"
+    REMOVE = "DELETE FROM \"%s\" WHERE uuid=%%s;"
+    SELECT = "SELECT * FROM \"%s\" WHERE uuid=%%s;"
 
     def __init__(self, gatsby):
         self.gatsby = gatsby
@@ -70,17 +70,17 @@ class UserList(object):
 class Gatsby(B57Mixin):
 
     TABLE_PREFIX = "gatsby_users_"
-    SELECT = "SELECT * FROM gatsbys WHERE id=%s"
+    SELECT = "SELECT * FROM gatsbys WHERE uuid=%s"
     REGISTER = "INSERT INTO gatsbys VALUES (%s, %s);"
-    UNREGISTER = "DELETE FROM gatsbys WHERE id=%s;"
-    CREATE = "CREATE TABLE \"%s\" (id uuid, pending_card uuid, last_seen uuid,"\
+    UNREGISTER = "DELETE FROM gatsbys WHERE uuid=%s;"
+    CREATE = "CREATE TABLE \"%s\" (uuid uuid, pending_card uuid, last_seen uuid,"\
              "last_seen_time timestamptz, CONSTRAINT \"%s_pKey\" PRIMARY KEY(i"\
              "d));"
     DROP = "DROP TABLE \"%s\";"
 
     def __init__(self, **kwargs):
         self._api = kwargs
-        self.uuid = kwargs.get("id", uuid.uuid4())
+        self.uuid = kwargs.get("uuid", uuid.uuid4())
         self.table_name = kwargs.get("table_name", self._new_table_name())
         self.users = UserList(self)
 
@@ -121,12 +121,12 @@ class Gatsby(B57Mixin):
 
 class Card(B57Mixin):
 
-    FROM_ID = "SELECT * FROM cards WHERE id=%s;"
+    FROM_ID = "SELECT * FROM cards WHERE uuid=%s;"
     FROM_RND = "SELECT * FROM cards ORDER BY RANDOM() LIMIT 1;"
 
     def __init__(self, **kwargs):
         self._api = kwargs
-        self.uuid = kwargs["id"]
+        self.uuid = kwargs["uuid"]
 
 
     def api(self):
