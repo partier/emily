@@ -1,1 +1,1 @@
-web: gunicorn emily.emily:emily --log-file=- --workers $WEB_CONCURRENCY
+web: gunicorn emily.emily:emily --config emily/gunicorn_settings.py
