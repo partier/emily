@@ -11,6 +11,28 @@ from uuidencoder import UUIDEncoder as encoder
 
 emily = Flask(__name__)
 
+
+def force_ssl(fn):
+    @wraps(fn)
+    def check_ssl(*args, **kwargs):
+        if request.is_secure:
+            return fn(*args, **kwargs)
+        else:
+            return redirect(request.url.replace("http://", "https://"))
+    return check_ssl
+
+
+@force_ssl
+@emily.route("/user", methods=["POST"])
+def user():
+    if "email" in request.json and "pass" in request.json:
+        u = User.register_new(request.json["email"], request.json["password"])
+        if u is not None:
+            return (u.json(), 200, None)
+    else:
+        return (None, 400, None)
+
+
 @emily.route("/card", methods=["GET"])
 def card():
     c = Card.at_random()
