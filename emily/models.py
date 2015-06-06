@@ -13,8 +13,6 @@ import uuid
 
 from uuidencoder import UUIDEncoder as enc
 
-from utils import printfl
-
 def load_environment(name):
     if name not in os.environ:
         raise RuntimeError("{n} not in environment".format(n=name))
