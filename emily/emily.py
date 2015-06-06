@@ -6,14 +6,13 @@ import os
 import shortuuid
 import uuid
 from flask import Flask, redirect, request, url_for
-from models import Card, Gatsby
+from models import Card, Gatsby, User, verify_tables
 from uuidencoder import UUIDEncoder as encoder
 
 emily = Flask(__name__)
 
 
 def force_ssl(fn):
-    @wraps(fn)
     def check_ssl(*args, **kwargs):
         if request.is_secure:
             return fn(*args, **kwargs)
@@ -67,4 +66,5 @@ def main():
 
 
 if __name__ == "__main__":
+    verify_tables()
     emily.run(debug=True, port=int(os.environ["PORT"]), host="0.0.0.0")

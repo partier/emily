@@ -1,15 +1,19 @@
 # coding: latin-1
 
 import bcrypt
+import inspect
 import json
 import os
 import psycopg2
 import psycopg2.extras
 import shortuuid
+import sys
 import urlparse
 import uuid
 
 from uuidencoder import UUIDEncoder as enc
+
+from utils import printfl
 
 def load_environment(name):
     if name not in os.environ:
@@ -18,10 +22,23 @@ def load_environment(name):
 
 
 psycopg2.extras.register_uuid()
-url = urlparse.urlparse(load_environment("DATABASE_URL"))
-con = psycopg2.connect(
-        database=url.path[1:], user=url.username, password=url.password,
-        host=url.hostname, port=url.port)
+url = load_environment("DATABASE_URL")
+db = urlparse.urlparse(url)
+psql_args = {"database": db.path[1:],
+             "user": db.username,
+             "host": db.hostname,
+             "port": db.port,
+             "password": db.password}
+print("Connecting to Postgres from URL:\nURL: {}\n{}".format(url, psql_args))
+con = psycopg2.connect(**psql_args)
+
+
+def verify_tables():
+    for _, obj in inspect.getmembers(sys.modules[__name__]):
+        if (inspect.isclass(obj) and issubclass(obj, TableMixin) and
+                (obj is not TableMixin)):
+            if not obj.table_exists():
+                obj.table_create()
 
 
 class B57Mixin(object):
@@ -30,8 +47,39 @@ class B57Mixin(object):
         return shortuuid.encode(self.uuid)
 
 
-class User(object):
+class TableMixin(object):
 
+    _create = "CREATE TABLE {} ({});"
+    _exists = "SELECT table_name FROM information_schema.tables WHERE table_na"\
+              "me='{}';"
+
+    @classmethod
+    def table_create(cls):
+        schema = ""
+        for col in cls._table_schema:
+            schema += col[0] + " " + col[1] + ","
+        schema = schema[:-1]
+        with con.cursor() as cur:
+            cur.execute(TableMixin._create.format(cls._table_name, schema))
+            con.commit()
+
+    @classmethod
+    def table_exists(cls):
+        with con.cursor() as cur:
+            print TableMixin._exists.format(cls._table_name)
+            cur.execute(TableMixin._exists.format(cls._table_name))
+            print cur.rowcount
+            if cur.rowcount > 0:
+                return True
+        return False
+
+
+class User(TableMixin):
+
+    _table_name = "users"
+    _table_schema = [("uuid", "uuid"),
+                     ("email", "character varying"),
+                     ("hashed_pass", "character varying")]
     _add = "INSERT INTO users VALUES (%s, %s, %s);"
     _from_email = "SELECT * FROM users WHERE email=%s;"
     _from_uuid = "SELECT * FROM users WHERE uuid=%s;"
@@ -58,21 +106,21 @@ class User(object):
     @classmethod
     def from_email(cls, email):
         with con.cursor(cursor_factor=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(User._from_email, (email,))
+            cur.execute(cls._from_email, (email,))
             u = cur.fetchone()
             if u is None:
                 return None
             else:
-                return User(u)
+                return User(**u)
 
 
     @classmethod
     def register_new(cls, email, password):
-        if User.from_email(email) is None:
+        if cls.from_email(email) is None:
             u = User()
             hashed = bcrypt.hashpw(password, bcrypt.gensalt(15))
             with con.cursur() as cur:
-                cur.execute(User._add, (u.uuid, email, h,))
+                cur.execute(User._add, (u.uuid, email, hashed,))
                 con.commit()
             return u
         else:
@@ -111,15 +159,18 @@ class UserList(object):
         self.add(key)
 
 
-class Gatsby(B57Mixin):
+class Gatsby(B57Mixin, TableMixin):
 
-    _table_prefix = "gatsby_users_"
+    _table_name = "gatsbys"
+    _table_schema = [("uuid", "uuid"),
+                     ("table_name", "character varying")]
+    _prefix = "gatsby_users_"
     _select = "SELECT * FROM gatsbys WHERE uuid=%s"
     _register = "INSERT INTO gatsbys VALUES (%s, %s);"
     _unregister = "DELETE FROM gatsbys WHERE uuid=%s;"
-    _create = "CREATE TABLE \"%s\" (uuid uuid, pending_card uuid, last_seen uu"\
+    _create = "CREATE TABLE \"%s\" (user uuid, pending_card uuid, last_seen uu"\
             "id, last_seen_time timestamptz, CONSTRAINT \"%s_pKey\" PRIMARY KE"\
-            "Y(id));"
+            "Y(user));"
     _drop = "DROP TABLE \"%s\";"
 
     def __init__(self, **kwargs):
@@ -130,7 +181,7 @@ class Gatsby(B57Mixin):
 
 
     def _new_table_name(self):
-        return Gatsby._table_prefix + self.b57id()
+        return Gatsby._prefix + self.b57id()
 
 
     def destroy(self):
@@ -142,11 +193,11 @@ class Gatsby(B57Mixin):
 
     @classmethod
     def new(cls):
-        g = Gatsby()
+        g = cls()
         t = g._new_table_name()
         with con.cursor() as cur:
-            cur.execute(Gatsby._create % (t, t))
-            cur.execute(Gatsby._register, (g.uuid, t,))
+            cur.execute(cls._create % (t, t))
+            cur.execute(cls._register, (g.uuid, t,))
             con.commit()
         return g
 
@@ -154,17 +205,23 @@ class Gatsby(B57Mixin):
     @classmethod
     def from_uuid(cls, uid):
         with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(Gatsby._select, (uid,))
+            cur.execute(cls._select, (uid,))
             return Gatsby(**cur.fetchone())
 
 
     @classmethod
     def from_b57id(cls, b57id):
-        return Gatsby.from_uuid(shortuuid.decode(b57id))
+        return cls.from_uuid(shortuuid.decode(b57id))
 
 
-class Card(B57Mixin):
+class Card(B57Mixin, TableMixin):
 
+    _table_name = "cards"
+    _table_schema = [("uuid", "uuid"),
+                     ("title", "character varying"),
+                     ("body", "character varying"),
+                     ("help", "character varying"),
+                     ("type", "character varying")]
     _from_id = "SELECT * FROM cards WHERE uuid=%s;"
     _from_rnd = "SELECT * FROM cards ORDER BY RANDOM() LIMIT 1;"
 
@@ -180,17 +237,17 @@ class Card(B57Mixin):
     @classmethod
     def from_uuid(cls, uid):
         with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(Card._from_id, (uid,))
-            return Card(**cur.fetchone())
+            cur.execute(cls._from_id, (uid,))
+            return cls(**cur.fetchone())
 
 
     @classmethod
     def from_b57id(cls, b57id):
-        return Card.from_uuid(shortuuid.decode(b57id))
+        return cls.from_uuid(shortuuid.decode(b57id))
 
 
     @classmethod
     def at_random(cls):
         with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(Card._from_rnd)
-            return Card(**cur.fetchone())
+            cur.execute(cls._from_rnd)
+            return cls(**cur.fetchone())
