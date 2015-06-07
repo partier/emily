@@ -12,6 +12,7 @@ import urlparse
 import uuid
 
 from uuidencoder import UUIDEncoder as enc
+from psycopg2.extras import RealDictCursor as dict_cursor
 
 def load_environment(name):
     if name not in os.environ:
@@ -49,7 +50,7 @@ class TableMixin(object):
 
     _create = "CREATE TABLE {} ({});"
     _exists = "SELECT table_name FROM information_schema.tables WHERE table_na"\
-              "me='{}';"
+              "me=%s;"
 
     @classmethod
     def table_create(cls):
@@ -63,24 +64,23 @@ class TableMixin(object):
 
     @classmethod
     def table_exists(cls):
+        exists = False
         with con.cursor() as cur:
-            print TableMixin._exists.format(cls._table_name)
-            cur.execute(TableMixin._exists.format(cls._table_name))
-            print cur.rowcount
+            cur.execute(TableMixin._exists, (cls._table_name,))
             if cur.rowcount > 0:
-                return True
-        return False
+                exists = True
+        return exists
 
 
 class User(TableMixin):
 
     _table_name = "users"
     _table_schema = [("uuid", "uuid"),
-                     ("email", "character varying"),
+                     ("email_addr", "character varying"),
                      ("hashed_pass", "character varying")]
-    _add = "INSERT INTO users VALUES (%s, %s, %s);"
-    _from_email = "SELECT * FROM users WHERE email=%s;"
-    _from_uuid = "SELECT * FROM users WHERE uuid=%s;"
+    _add = "INSERT INTO {} VALUES (%s, %s, %s);".format(_table_name)
+    _from_email = "SELECT * FROM {} WHERE email_addr=%s;".format(_table_name)
+    _from_uuid = "SELECT * FROM {} WHERE uuid=%s;".format(_table_name)
 
     def __init__(self, **kwargs):
         self.uuid = kwargs.get("uuid", uuid.uuid4())
@@ -88,7 +88,7 @@ class User(TableMixin):
 
 
     def challenge(self, password):
-        with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(User._from_uuid, (self.uuid,))
             u = cur.fetchone()
             if (bcrypt.hashpw(password, u["hashed_pass"]) == u["hashed_pass"]):
@@ -103,26 +103,27 @@ class User(TableMixin):
 
     @classmethod
     def from_email(cls, email):
-        with con.cursor(cursor_factor=psycopg2.extras.RealDictCursor) as cur:
+        u = None
+        with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._from_email, (email,))
+            con.commit() # Without, this query will hang indefinitely. Why?
             u = cur.fetchone()
-            if u is None:
-                return None
-            else:
-                return User(**u)
+        if u is None:
+            return None
+        else:
+            return User(**u)
 
 
     @classmethod
     def register_new(cls, email, password):
-        if cls.from_email(email) is None:
-            u = User()
+        u = cls.from_email(email)
+        if u is None:
+            u = User(email=email)
             hashed = bcrypt.hashpw(password, bcrypt.gensalt(15))
-            with con.cursur() as cur:
+            with con.cursor() as cur:
                 cur.execute(User._add, (u.uuid, email, hashed,))
                 con.commit()
-            return u
-        else:
-            return None
+        return u
 
 
 class UserList(object):
@@ -148,7 +149,7 @@ class UserList(object):
 
 
     def __getitem__(self, key):
-        with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(UserList._select % self.gatsby.table_name, (key,))
             return cur.fetchone()
 
@@ -163,9 +164,9 @@ class Gatsby(B57Mixin, TableMixin):
     _table_schema = [("uuid", "uuid"),
                      ("table_name", "character varying")]
     _prefix = "gatsby_users_"
-    _select = "SELECT * FROM gatsbys WHERE uuid=%s"
-    _register = "INSERT INTO gatsbys VALUES (%s, %s);"
-    _unregister = "DELETE FROM gatsbys WHERE uuid=%s;"
+    _select = "SELECT * FROM {} WHERE uuid=%s".format(_table_name)
+    _register = "INSERT INTO {} VALUES (%s, %s);".format(_table_name)
+    _unregister = "DELETE FROM {} WHERE uuid=%s;".format(_table_name)
     _create = "CREATE TABLE \"%s\" (user uuid, pending_card uuid, last_seen uu"\
             "id, last_seen_time timestamptz, CONSTRAINT \"%s_pKey\" PRIMARY KE"\
             "Y(user));"
@@ -202,7 +203,7 @@ class Gatsby(B57Mixin, TableMixin):
 
     @classmethod
     def from_uuid(cls, uid):
-        with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._select, (uid,))
             return Gatsby(**cur.fetchone())
 
@@ -234,7 +235,7 @@ class Card(B57Mixin, TableMixin):
 
     @classmethod
     def from_uuid(cls, uid):
-        with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._from_id, (uid,))
             return cls(**cur.fetchone())
 
@@ -246,6 +247,6 @@ class Card(B57Mixin, TableMixin):
 
     @classmethod
     def at_random(cls):
-        with con.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._from_rnd)
             return cls(**cur.fetchone())
