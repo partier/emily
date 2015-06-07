@@ -1,11 +1,14 @@
 language: python
 python:
-  - "2.7"
+- '2.7'
 addons:
-  postgresql: "9.3"
+  postgresql: '9.3'
 env: DATABASE_URL="postgres://posgres:@localhost:5432/emily_test"
-install: "pip install -q -r requirements.txt"
+install: pip install -q -r requirements.txt
 before_script:
-  - psql -c "create database emily_test;" -U postgres
-  - psql -c "create user emily with password 'password'" -U postgres
-script: "nosetests -v"
+- psql -c "create database emily_test;" -U postgres
+- psql -c "create user emily with password 'password'" -U postgres
+script: nosetests -v
+notifications:
+  slack:
+    secure: H0TXaA5Fj6mnLnMMiP4o8moOSjOhgm4pDEVKgRxM3sYT4aCQz9lsbk6dhTz+/qqfLgQeQyF2sXpeGoNadIPYKxfmAWiWNry0BmONTQAVgW7LX4T5Gac6TIPdjD2mOtXbJ82brccBRkxi71fDfhVzbbGZj9y644C/EVPrpCQ4uG0=
