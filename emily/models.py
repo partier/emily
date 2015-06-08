@@ -32,7 +32,7 @@ print("Connecting to Postgres from URL:\nURL: {}\n{}".format(url, psql_args))
 con = psycopg2.connect(**psql_args)
 
 
-def verify_tables():
+def create_tables():
     for _, obj in inspect.getmembers(sys.modules[__name__]):
         if (inspect.isclass(obj) and issubclass(obj, TableMixin) and
                 (obj is not TableMixin)):
@@ -91,6 +91,7 @@ class User(TableMixin):
         with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(User._from_uuid, (self.uuid,))
             u = cur.fetchone()
+            con.commit()
             if (bcrypt.hashpw(password, u["hashed_pass"]) == u["hashed_pass"]):
                 return True
             else:
@@ -123,6 +124,9 @@ class User(TableMixin):
             with con.cursor() as cur:
                 cur.execute(User._add, (u.uuid, email, hashed,))
                 con.commit()
+        else:
+            if not u.challenge(password):
+                u = None
         return u
 
 
@@ -249,4 +253,5 @@ class Card(B57Mixin, TableMixin):
     def at_random(cls):
         with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._from_rnd)
+            con.commit()
             return cls(**cur.fetchone())

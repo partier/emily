@@ -181,7 +181,7 @@ class TestUser(object):
             assert result["email_addr"] == email, "Should match register email"
             hp = result["hashed_pass"]
             assert bcrypt.hashpw(passw, hp) == hp, "Should verify password"
-
+            con.commit()
 
     def test_register_new_existing(self):
         email = "email@test.com"
@@ -194,4 +194,5 @@ class TestUser(object):
             uid = cur.fetchone()["uuid"]
             con.commit()
         u = models.User.register_new(email, passw)
-        assert u.uuid == uid, "Should match exiting UUID"
+        assert u.uuid == uid, "Should match existing UUID"
+
