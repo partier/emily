@@ -241,7 +241,9 @@ class Card(B57Mixin, TableMixin):
     def from_uuid(cls, uid):
         with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._from_id, (uid,))
-            return cls(**cur.fetchone())
+            card = cur.fetchone()
+            con.commit()
+            return cls(**card)
 
 
     @classmethod
@@ -253,5 +255,6 @@ class Card(B57Mixin, TableMixin):
     def at_random(cls):
         with con.cursor(cursor_factory=dict_cursor) as cur:
             cur.execute(cls._from_rnd)
+            card = cur.fetchone()
             con.commit()
-            return cls(**cur.fetchone())
+            return cls(**card)
