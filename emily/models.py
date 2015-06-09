@@ -84,7 +84,7 @@ class User(TableMixin):
 
     def __init__(self, **kwargs):
         self.uuid = kwargs.get("uuid", uuid.uuid4())
-        self.email = kwargs.get("email")
+        self.email = kwargs.get("email", kwargs.get("email_addr", None))
 
 
     def challenge(self, password):
@@ -99,7 +99,8 @@ class User(TableMixin):
 
 
     def to_client(self):
-        return json.dumps({"uuid": self.uuid}, separators=(",", ":"), cls=enc)
+        d = {"uuid": self.uuid, "email": self.email}
+        return json.dumps(d, separators=(",", ":"), cls=enc)
 
 
     @classmethod
@@ -118,6 +119,8 @@ class User(TableMixin):
     @classmethod
     def register_new(cls, email, password):
         u = cls.from_email(email)
+        if type(password) is unicode:
+            password = password.encode()
         if u is None:
             u = User(email=email)
             hashed = bcrypt.hashpw(password, bcrypt.gensalt(15))

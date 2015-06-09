@@ -24,12 +24,12 @@ def force_ssl(fn):
 @force_ssl
 @app.route("/user", methods=["POST"])
 def user():
-    if "email" in request.json and "pass" in request.json:
+    if "email" in request.json and "password" in request.json:
         u = User.register_new(request.json["email"], request.json["password"])
         if u is not None:
             return (u.to_client(), 200, None)
     else:
-        return (None, 400, None)
+        return ("Minimum parameters: 'email', 'password'", 400, None)
 
 
 @app.route("/card", methods=["GET"])
